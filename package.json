@@ -1,0 +1,44 @@
+{
+  "name": "growth-tracker",
+  "version": "1.0.0",
+  "description": "Offline-first tracker for coding growth: focus timers, journal, skills, a Python roadmap with quizzes, and spaced repetition. No backend, no API keys.",
+  "private": false,
+  "license": "MIT",
+  "author": "Soham Pawar",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soham7117/growth-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/soham7117/growth-tracker/issues"
+  },
+  "keywords": ["productivity", "learning", "pomodoro", "roadmap", "python", "pwa", "local-first", "react", "vite"],
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "dexie": "^4.0.10",
+    "dexie-react-hooks": "^1.1.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.4",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^5.6.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}
