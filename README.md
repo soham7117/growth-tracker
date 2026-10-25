@@ -6,9 +6,13 @@ An offline-first web app to track your growth as a developer. Focus timers with 
 
 **Live demo: https://growth-tracker-ecru.vercel.app**
 
-| Python roadmap (quiz-gated checklist) | Focus timer |
+| Dashboard | Python roadmap (quiz-gated checklist) |
 |---|---|
-| ![Python roadmap checklist](docs/roadmap.png) | ![Pomodoro timer](docs/timer.png) |
+| ![Dashboard with heatmap, streak and nudges](docs/dashboard.png) | ![Python roadmap checklist](docs/roadmap.png) |
+| **Insights** | **Focus timer** |
+| ![Weekly insights charts](docs/insights.png) | ![Pomodoro timer](docs/timer.png) |
+
+> Want to explore with realistic data? Open **Settings → ✨ Load sample data** (this replaces your current data, so export a backup first if you have any).
 
 ## Features
 
