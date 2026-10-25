@@ -4,7 +4,15 @@ An offline-first web app to track your growth as a developer. Focus timers with 
 
 **No backend. No accounts. No API keys.** Everything is stored in your browser (IndexedDB) and never leaves your device.
 
-<!-- Add screenshots here: docs/dashboard.png, docs/roadmap.png -->
+**Live demo: https://growth-tracker-ecru.vercel.app**
+
+| Dashboard | Python roadmap (quiz-gated checklist) |
+|---|---|
+| ![Dashboard with heatmap, streak and nudges](docs/dashboard.png) | ![Python roadmap checklist](docs/roadmap.png) |
+| **Insights** | **Focus timer** |
+| ![Weekly insights charts](docs/insights.png) | ![Pomodoro timer](docs/timer.png) |
+
+> Want to explore with realistic data? Open **Settings → ✨ Load sample data** (this replaces your current data, so export a backup first if you have any).
 
 ## Features
 

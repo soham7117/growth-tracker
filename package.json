@@ -5,6 +5,7 @@
   "private": false,
   "license": "MIT",
   "author": "Soham Pawar",
+  "homepage": "https://growth-tracker-ecru.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/soham7117/growth-tracker.git"

@@ -1,0 +1,28 @@
+name: Quiz question fix or suggestion
+description: Report a wrong answer or suggest a new question for a roadmap topic
+labels: [quiz]
+body:
+  - type: input
+    id: topic
+    attributes:
+      label: Roadmap topic
+      placeholder: e.g. Decorators
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this?
+      options:
+        - Wrong or misleading answer
+        - Unclear question
+        - New question suggestion
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: For a new question, include the question, 1 correct answer, 3 plausible wrong answers, a one-line explanation, and an optional code snippet (verified by running it in Python).
+    validations:
+      required: true

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { clearAll, exportAll, importAll } from '../db'
 import { Card } from '../components/ui'
 import { beep, notify, requestNotifications, unlockAudio } from '../lib/alarm'
+import { loadDemoData } from '../lib/demo'
 import { DEFAULTS, updateSettings, useSettings } from '../lib/settings'
 import { timer } from '../lib/timer'
 import { download, today } from '../lib/util'
@@ -158,6 +159,17 @@ export default function SettingsPage() {
               </button>
               <input ref={fileRef} type="file" accept="application/json" hidden onChange={doImport} />
             </div>
+            <button
+              className="btn ghost"
+              onClick={async () => {
+                if (confirm('Replace ALL current data with sample data? Export a backup first if you want to keep your data.')) {
+                  await loadDemoData()
+                  setMsg('Sample data loaded.')
+                }
+              }}
+            >
+              ✨ Load sample data
+            </button>
             <button
               className="btn danger"
               onClick={async () => {
