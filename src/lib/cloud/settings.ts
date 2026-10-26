@@ -11,6 +11,7 @@ export interface CloudSettings {
   lastRevision: number | null
   lastHash: string | null
   lastSyncedAt: number | null
+  lastUserId: string | null // account this device last synced with (guards against mixing accounts)
 }
 
 export const CLOUD_DEFAULTS: CloudSettings = {
@@ -24,6 +25,7 @@ export const CLOUD_DEFAULTS: CloudSettings = {
   lastRevision: null,
   lastHash: null,
   lastSyncedAt: null,
+  lastUserId: null,
 }
 
 const KEY = 'gt-cloud'

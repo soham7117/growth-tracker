@@ -18,6 +18,8 @@ Data goes to the Supabase project the site is configured with (or your own proje
 | Backup snapshot (journal, skills, goals…) | Restore / move between devices | **No.** Only you. Optionally encrypted so even the administrator can't read it |
 
 - **Choose a display name that isn't your real name.** It is public on the leaderboard if you opt in.
+- **Opting out:** turning the leaderboard off removes your daily totals from the cloud. Signing out forgets this device's sync markers and the encryption passphrase.
+- **Previous version:** to make accidents recoverable, the cloud keeps one extra (older) copy of your backup. It is deleted with your backup, or with your account.
 - **Delete everything:** *Settings → Cloud sync → Delete my cloud data* removes your backup and leaderboard history; *Delete my account* removes the account and all rows. Data on your own device is untouched.
 - **Retention:** data is kept until you delete it. The administrator may remove accounts that are inactive for a long time.
 - **Leaderboard fairness:** scores are computed from numbers your device reports and are validated and capped on the server, but cannot be fully verified. It is for fun.

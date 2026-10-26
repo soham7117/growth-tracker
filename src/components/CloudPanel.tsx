@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { Card } from './ui'
 import { signInWithProvider, signOut, useSession } from '../lib/cloud/auth'
 import { activeConnection, hasBuiltin } from '../lib/cloud/client'
-import { deleteAccount, deleteCloudData, friendlyError, loadProfile, saveProfile, syncNow, type Profile } from '../lib/cloud/engine'
+import { deleteAccount, deleteCloudData, friendlyError, loadCloudInfo, loadProfile, restorePrevious, saveProfile, syncNow, type CloudInfo, type Profile } from '../lib/cloud/engine'
 import { updateCloud, useCloudSettings } from '../lib/cloud/settings'
 import { getPassphrase, setPassphrase, useSyncStatus } from '../lib/cloud/status'
+import { timeAgo } from '../lib/util'
 
 const AVATARS = ['🙂', '🦊', '🐼', '🦉', '🐙', '🚀', '🌱', '🔥', '🧠', '⚡']
 
@@ -16,6 +17,7 @@ export default function CloudPanel() {
   const [pass, setPass] = useState(getPassphrase())
   const [profile, setProfile] = useState<Profile>({ display_name: '', avatar: '🙂', country: null, leaderboard_opt_in: false })
   const [profileMsg, setProfileMsg] = useState('')
+  const [info, setInfo] = useState<CloudInfo | null>(null)
   const conn = activeConnection(cs)
   // Which sign-in providers the project has switched on (public endpoint); null = unknown yet.
   const [providers, setProviders] = useState<Record<string, boolean> | null>(null)
@@ -31,6 +33,14 @@ export default function CloudPanel() {
       cancelled = true
     }
   }, [conn?.url, conn?.key, cs.enabled])
+
+  // details of the cloud backup (revision, device, when) shown next to the sync controls
+  useEffect(() => {
+    if (!session || !cs.enabled || !cs.backup) return setInfo(null)
+    loadCloudInfo()
+      .then(setInfo)
+      .catch(() => setInfo(null))
+  }, [session?.user.id, cs.enabled, cs.backup, status.at])
 
   const providerOff = (p: 'github' | 'google') => providers !== null && providers[p] === false
 
@@ -173,7 +183,7 @@ export default function CloudPanel() {
                 </div>
                 <label className="chk">
                   <input type="checkbox" checked={profile.leaderboard_opt_in} onChange={(e) => setProfile({ ...profile, leaderboard_opt_in: e.target.checked })} /> Show me on the public leaderboard (shares only
-                  daily totals: focus minutes, topics passed, problems, cards)
+                  daily totals: focus minutes, topics passed, problems, cards. Turning it off removes your daily totals from the cloud)
                 </label>
                 <div className="row">
                   <button className="btn" disabled={!profile.display_name.trim()}>
@@ -240,12 +250,38 @@ export default function CloudPanel() {
                   </p>
                 )}
                 {status.phase === 'conflict' && (
-                  <div className="row">
-                    <button className="btn small" onClick={doSync('local')}>
-                      Keep this device
-                    </button>
-                    <button className="btn ghost small" onClick={doSync('cloud')}>
-                      Keep cloud copy
+                  <>
+                    <p className="sub" style={{ fontSize: 13, margin: 0 }}>
+                      Cloud copy: {info ? `revision ${info.revision} from ${info.device ?? 'another device'}, ${timeAgo(info.updatedAt)}` : 'unknown'}. This device: {cs.lastSyncedAt ? `last synced ${timeAgo(cs.lastSyncedAt)}` : 'never synced'}. Nothing is lost
+                      silently: "Keep cloud copy" first downloads a backup file of this device, and the cloud keeps a recent previous version you can restore.
+                    </p>
+                    <div className="row">
+                      <button className="btn small" onClick={doSync('local')}>
+                        Keep this device
+                      </button>
+                      <button className="btn ghost small" onClick={doSync('cloud')}>
+                        Keep cloud copy
+                      </button>
+                    </div>
+                  </>
+                )}
+                {info && (
+                  <p className="sub" style={{ fontSize: 12, margin: 0 }}>
+                    Cloud backup: revision {info.revision} · from {info.device ?? 'unknown device'} · {timeAgo(info.updatedAt)}
+                    {info.encrypted ? ' · encrypted' : ''}
+                  </p>
+                )}
+                {info?.previousAt && (
+                  <div>
+                    <button
+                      className="btn ghost small"
+                      onClick={() =>
+                        confirm(
+                          'Swap the cloud backup with its previous version and load it onto this device? A copy of your current local data is downloaded first, and you can swap back the same way.'
+                        ) && run(async () => void (await restorePrevious()))()
+                      }
+                    >
+                      ↩ Restore previous cloud version (saved {timeAgo(info.previousAt)})
                     </button>
                   </div>
                 )}

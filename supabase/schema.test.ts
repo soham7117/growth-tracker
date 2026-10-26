@@ -152,6 +152,45 @@ await as(null)
   ok((await db.query(`select count(*)::int as n from auth.users where id = '00000000-0000-0000-0000-0000000000e1'`)).rows[0].n === 0, 'no email user was created')
 }
 
+// safety net: previous cloud version + restore, and opt-out cleanup
+await as('authenticated', B)
+{
+  const age = async () => { await as(null); await db.exec(`update backups set updated_at = now() - interval '10 seconds' where user_id = '${B}'`); await as('authenticated', B) }
+  const big = 'gt0.' + 'x'.repeat(5000)
+  let r = await tryQ(`select push_backup($1, false, 0, 'Mac')`, [big])
+  ok(!r.e, 'B first push', r.e)
+  await age()
+  r = await tryQ(`select push_backup('gt0.small', false, 1, 'Phone')`)
+  ok(!r.e, 'B shrinking push', r.e)
+  await as(null)
+  let row = (await db.query(`select prev_data, prev_revision, revision, data from backups where user_id = '${B}'`)).rows[0] as any
+  ok(row.prev_data === big && row.prev_revision === 1 && row.revision === 2, 'the big version is kept as the previous copy after a shrink', JSON.stringify({ rev: row.revision, prevLen: row.prev_data?.length }))
+  await as('authenticated', B)
+  await age()
+  r = await tryQ(`select push_backup('gt0.small2', false, 2, 'Phone')`)
+  await as(null)
+  row = (await db.query(`select prev_data, revision from backups where user_id = '${B}'`)).rows[0] as any
+  ok(row.prev_data === big && row.revision === 3, 'a second small push does not evict the big previous copy')
+  await as('authenticated', B)
+  r = await tryQ(`select restore_previous_backup()`)
+  ok(Object.values(r.r?.rows[0] ?? {})[0] === 4, 'restore returns the next revision (4)', JSON.stringify(r))
+  await as(null)
+  row = (await db.query(`select data, prev_data, revision from backups where user_id = '${B}'`)).rows[0] as any
+  ok(row.data === big && row.prev_data === 'gt0.small2' && row.revision === 4, 'restore swaps current and previous (so it can be undone)')
+  await as('authenticated', C)
+  ok(!!(await tryQ(`select restore_previous_backup()`)).e, 'restore with no backup fails cleanly')
+  await as('anon')
+  ok(!!(await tryQ(`select restore_previous_backup()`)).e, 'anon cannot restore')
+
+  // opting out removes the daily totals
+  await as(null)
+  ok((await db.query(`select count(*)::int as n from daily_activity where user_id = '${B}'`)).rows[0].n > 0, 'B has leaderboard rows before opting out')
+  await as('authenticated', B)
+  await tryQ(`select upsert_profile('Bob', '🐻', null, false)`)
+  await as(null)
+  ok((await db.query(`select count(*)::int as n from daily_activity where user_id = '${B}'`)).rows[0].n === 0, 'opting out deletes the daily totals')
+}
+
 // deletion
 await as('authenticated', A)
 ok(!(await tryQ(`select delete_my_cloud_data()`)).e, 'delete_my_cloud_data works')

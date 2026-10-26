@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getClient, redirectUrl } from './client'
-import { useCloudSettings } from './settings'
+import { updateCloud, useCloudSettings } from './settings'
+import { setPassphrase } from './status'
 
 export type Provider = 'github' | 'google'
 
@@ -21,6 +22,9 @@ export async function signInWithProvider(provider: Provider) {
 export async function signOut() {
   const client = await getClient()
   await client?.auth.signOut()
+  // forget this account's sync markers and the in-memory passphrase
+  updateCloud({ lastRevision: null, lastHash: null, lastUserId: null })
+  setPassphrase('')
 }
 
 /** undefined = still loading, null = signed out. Only touches the network when cloud sync is enabled. */
