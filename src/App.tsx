@@ -5,6 +5,7 @@ import { useSettings } from './lib/settings'
 import { elapsedMs, useTimer } from './lib/timer'
 import { fmtDuration } from './lib/util'
 import ErrorBoundary from './components/ErrorBoundary'
+import { useAutoSync } from './lib/cloud/autosync'
 import Dashboard from './pages/Dashboard'
 
 // Route-level code splitting keeps the heavy chart library out of the initial bundle.
@@ -16,6 +17,7 @@ const GoalsPage = lazy(() => import('./pages/GoalsPage'))
 const PracticePage = lazy(() => import('./pages/PracticePage'))
 const ReviewPage = lazy(() => import('./pages/ReviewPage'))
 const InsightsPage = lazy(() => import('./pages/InsightsPage'))
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 const NAV = [
@@ -28,6 +30,7 @@ const NAV = [
   { to: '/practice', label: 'Practice', icon: '💻' },
   { to: '/review', label: 'Review', icon: '🃏' },
   { to: '/insights', label: 'Insights', icon: '📊' },
+  { to: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
@@ -48,6 +51,7 @@ function MiniTimer() {
 export default function App() {
   const s = useSettings()
   useBackgroundLoop()
+  useAutoSync() // no-op unless cloud sync and auto mode are switched on
 
   useEffect(() => {
     document.documentElement.dataset.theme = s.theme
@@ -88,6 +92,7 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
         </Suspense>

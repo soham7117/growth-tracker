@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from '../db'
+import { bumpCardsReviewed, db } from '../db'
 import { Card, DictateButton, Empty, SkillSelect } from '../components/ui'
 import { useSkills } from '../lib/hooks'
 import { sm2, today } from '../lib/util'
@@ -20,6 +20,7 @@ export default function ReviewPage() {
   async function grade(q: number) {
     if (!card) return
     await db.flashcards.update(card.id!, sm2(card, q))
+    await bumpCardsReviewed(today())
     setReveal(false)
   }
 

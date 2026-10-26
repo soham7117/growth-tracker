@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { clearAll, exportAll, importAll } from '../db'
 import { Card } from '../components/ui'
+import CloudPanel from '../components/CloudPanel'
 import { beep, notify, requestNotifications, unlockAudio } from '../lib/alarm'
 import { loadDemoData } from '../lib/demo'
 import { DEFAULTS, updateSettings, useSettings } from '../lib/settings'
@@ -144,6 +145,8 @@ export default function SettingsPage() {
             </button>
           </div>
         </Card>
+
+        <CloudPanel />
 
         <Card title="Your data">
           <div className="form">
