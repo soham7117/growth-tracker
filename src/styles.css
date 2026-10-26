@@ -248,3 +248,16 @@ label.chk { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .plink:hover { border-color: var(--accent); }
 .rm-item .pr { margin-left: auto; background: none; border: 0; cursor: pointer; font-size: 15px; }
 .rm-item .name { flex: 1; }
+
+/* leaderboard */
+.lb { width: 100%; border-collapse: collapse; }
+.lb th { text-align: left; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.lb td { padding: 9px 8px; border-bottom: 1px solid var(--border); }
+.lb tr.me td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.lb th:last-child, .lb td:last-child { text-align: right; }
+
+/* cloud status chip */
+.mini.cloud { margin-bottom: 8px; padding: 8px 12px; }
+.mini.cloud .s { font-size: 12px; }
+.mini.cloud.warn { border-color: var(--warn); }
+.mini.cloud.warn .s { color: var(--warn); }

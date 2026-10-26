@@ -87,7 +87,14 @@ export interface RoadmapProgress {
   doneAt: number
 }
 
+/** Small per-day counters that can't be derived from other tables (used for the leaderboard). */
+export interface Activity {
+  date: string
+  cardsReviewed: number
+}
+
 class TrackerDB extends Dexie {
+  activity!: Table<Activity, string>
   roadmap!: Table<RoadmapProgress, string>
   skills!: Table<Skill, number>
   sessions!: Table<Session, number>
@@ -113,6 +120,7 @@ class TrackerDB extends Dexie {
       flashcards: '++id, due, skillId',
     })
     this.version(2).stores({ roadmap: 'id' })
+    this.version(3).stores({ activity: 'date' })
   }
 }
 
@@ -129,6 +137,7 @@ export const TABLES = [
   'resources',
   'flashcards',
   'roadmap',
+  'activity',
 ] as const
 
 export async function exportAll() {
@@ -150,6 +159,13 @@ export async function importAll(json: any) {
 export async function clearAll() {
   await db.transaction('rw', TABLES.map((t) => (db as any)[t]), async () => {
     for (const t of TABLES) await (db as any)[t].clear()
+  })
+}
+
+export async function bumpCardsReviewed(date: string) {
+  await db.transaction('rw', db.activity, async () => {
+    const cur = await db.activity.get(date)
+    await db.activity.put({ date, cardsReviewed: (cur?.cardsReviewed ?? 0) + 1 })
   })
 }
 

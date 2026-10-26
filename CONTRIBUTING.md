@@ -41,6 +41,10 @@ Practice links live in [`src/data/practice.ts`](src/data/practice.ts) and must b
 - Match the existing patterns (Dexie tables in `src/db.ts`, pages in `src/pages`, shared UI in `src/components/ui.tsx`).
 - Changing the database schema? Add a new `this.version(n).stores(...)` in `src/db.ts` rather than editing an existing version, so existing users' data migrates.
 
+## Changing the cloud schema
+
+`supabase/schema.sql` must stay re-runnable and keep every write behind a validating function. `npm test` loads it into an in-memory Postgres and checks security and scoring; add a check for any new rule.
+
 ## Reporting bugs
 
 Open an issue with your browser, steps to reproduce, and any console errors.

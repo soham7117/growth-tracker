@@ -3,8 +3,12 @@ import { NavLink, Route, Routes } from 'react-router-dom'
 import { useBackgroundLoop, useNow } from './lib/hooks'
 import { useSettings } from './lib/settings'
 import { elapsedMs, useTimer } from './lib/timer'
-import { fmtDuration } from './lib/util'
+import { fmtDuration, timeAgo } from './lib/util'
 import ErrorBoundary from './components/ErrorBoundary'
+import { useAutoSync } from './lib/cloud/autosync'
+import { useSession } from './lib/cloud/auth'
+import { useCloudSettings } from './lib/cloud/settings'
+import { useSyncStatus } from './lib/cloud/status'
 import Dashboard from './pages/Dashboard'
 
 // Route-level code splitting keeps the heavy chart library out of the initial bundle.
@@ -16,6 +20,7 @@ const GoalsPage = lazy(() => import('./pages/GoalsPage'))
 const PracticePage = lazy(() => import('./pages/PracticePage'))
 const ReviewPage = lazy(() => import('./pages/ReviewPage'))
 const InsightsPage = lazy(() => import('./pages/InsightsPage'))
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 const NAV = [
@@ -28,6 +33,7 @@ const NAV = [
   { to: '/practice', label: 'Practice', icon: '💻' },
   { to: '/review', label: 'Review', icon: '🃏' },
   { to: '/insights', label: 'Insights', icon: '📊' },
+  { to: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
@@ -45,9 +51,25 @@ function MiniTimer() {
   )
 }
 
+function CloudChip() {
+  const cs = useCloudSettings()
+  const session = useSession()
+  const status = useSyncStatus()
+  useNow(30000) // keep "synced 2 min ago" fresh
+  if (!cs.enabled || !session) return null
+  const bad = status.phase === 'conflict' || status.phase === 'error'
+  const text = status.phase === 'conflict' ? '☁️ Sync needs attention' : status.phase === 'error' ? '☁️ Sync problem' : cs.lastSyncedAt ? `☁️ Synced ${timeAgo(cs.lastSyncedAt)}` : '☁️ Signed in'
+  return (
+    <NavLink to="/settings" className={`mini cloud ${bad ? 'warn' : ''}`} title="Open cloud sync settings">
+      <div className="s">{text}</div>
+    </NavLink>
+  )
+}
+
 export default function App() {
   const s = useSettings()
   useBackgroundLoop()
+  useAutoSync() // no-op unless cloud sync and auto mode are switched on
 
   useEffect(() => {
     document.documentElement.dataset.theme = s.theme
@@ -73,6 +95,7 @@ export default function App() {
           </NavLink>
         ))}
         <div className="grow" />
+        <CloudChip />
         <MiniTimer />
       </aside>
       <main className="main">
@@ -88,6 +111,7 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
         </Suspense>
