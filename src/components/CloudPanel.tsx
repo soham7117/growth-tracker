@@ -17,6 +17,22 @@ export default function CloudPanel() {
   const [profile, setProfile] = useState<Profile>({ display_name: '', avatar: '🙂', country: null, leaderboard_opt_in: false })
   const [profileMsg, setProfileMsg] = useState('')
   const conn = activeConnection(cs)
+  // Which sign-in providers the project has switched on (public endpoint); null = unknown yet.
+  const [providers, setProviders] = useState<Record<string, boolean> | null>(null)
+
+  useEffect(() => {
+    if (!conn || !cs.enabled) return
+    let cancelled = false
+    fetch(`${conn.url.replace(/\/$/, '')}/auth/v1/settings`, { headers: { apikey: conn.key } })
+      .then((r) => r.json())
+      .then((d) => !cancelled && setProviders(d?.external ?? null))
+      .catch(() => !cancelled && setProviders(null))
+    return () => {
+      cancelled = true
+    }
+  }, [conn?.url, conn?.key, cs.enabled])
+
+  const providerOff = (p: 'github' | 'google') => providers !== null && providers[p] === false
 
   useEffect(() => {
     if (!session || !cs.enabled) return
@@ -108,11 +124,11 @@ export default function CloudPanel() {
                 Sign in
               </div>
               <div className="row">
-                <button className="btn" onClick={run(() => signInWithProvider('github'))}>
+                <button className="btn" disabled={providerOff('github')} title={providerOff('github') ? 'Not enabled on this project yet' : undefined} onClick={run(() => signInWithProvider('github'))}>
                   Continue with GitHub
                 </button>
-                <button className="btn ghost" onClick={run(() => signInWithProvider('google'))}>
-                  Continue with Google
+                <button className="btn ghost" disabled={providerOff('google')} title={providerOff('google') ? 'Not enabled on this project yet' : undefined} onClick={run(() => signInWithProvider('google'))}>
+                  Continue with Google{providerOff('google') ? ' (not enabled yet)' : ''}
                 </button>
                 <button className="btn ghost" disabled title="Needs a custom email sender; planned">
                   Email (coming later)
