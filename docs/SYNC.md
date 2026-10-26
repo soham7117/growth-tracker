@@ -61,6 +61,7 @@ All writes go through validating SQL functions; clients cannot write tables dire
 ## How sync behaves
 - **Manual:** *Sync now* decides automatically: push local changes, pull newer cloud data, or flag a **conflict** when both changed. *Upload* and *Download* force one direction (Download saves a copy of your current data first).
 - **Automatic:** pushes a few seconds after changes and checks the cloud every minute. It never overwrites on conflict; it pauses and asks.
+- **Safety nets:** the cloud keeps one *previous version* (the largest backup of the last 7 days), so an accidental overwrite with a tiny or empty backup can be undone with **Restore previous cloud version**. "Download" and "Keep cloud copy" first save a JSON copy of this device. If a different account signs in on the same device, the first sync is treated as a new device and raises a conflict instead of mixing the two accounts.
 - **Encryption:** if enabled, backups are encrypted in the browser (PBKDF2 + AES-GCM). The passphrase lives only in the current tab. Lose it and the encrypted cloud copy cannot be recovered.
 - The leaderboard numbers are separate from the backup and are only sent if you opted in.
 

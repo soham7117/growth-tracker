@@ -57,7 +57,7 @@ const fakeClient = {
 vi.mock('./client', () => ({ getClient: async () => fakeClient, activeConnection: () => ({}), hasBuiltin: true, BUILTIN: {}, redirectUrl: () => '' }))
 
 const { db, clearAll } = await import('../../db')
-const { syncNow, saveProfile, pushDailyStats, fetchLeaderboard } = await import('./engine')
+const { syncNow, saveProfile, pushDailyStats, fetchLeaderboard, loadCloudInfo, restorePrevious } = await import('./engine')
 const { updateCloud, getCloud, CLOUD_DEFAULTS } = await import('./settings')
 const { getStatus, setPassphrase } = await import('./status')
 const { currentSnapshot } = await import('./backup')
@@ -168,6 +168,48 @@ describe('syncNow (engine + real schema)', () => {
     setPassphrase('hunter2')
     expect(await syncNow()).toBe('pulled')
     expect((await db.logs.toArray())[0].learned).toBe('secret journal entry')
+  })
+})
+
+describe('safety nets (engine + real schema)', () => {
+  const B = '00000000-0000-0000-0000-0000000000bb'
+
+  it('does not silently mix accounts when someone else signs in on the same device', async () => {
+    await addLog('account A data')
+    expect(await syncNow()).toBe('pushed') // device is now "synced" with account A
+    uid = B
+    await run(`select push_backup('gt0.b-has-its-own-data', false, 0, 'B laptop')`)
+    // local data is unchanged since A's sync, so without the guard this would look like "up to date"
+    expect(await syncNow()).toBe('conflict')
+    expect(await db.logs.count()).toBe(1)
+    expect(getCloud().lastUserId).toBe(B)
+  })
+
+  it('keeps a previous cloud version after a big overwrite and can restore it', async () => {
+    for (let i = 0; i < 30; i++) await addLog('a long journal entry about decorators and generators ' + i + ' '.repeat(40))
+    const bigCount = await db.logs.count()
+    await syncNow()
+    await aging()
+
+    // accident: this device is wiped and a tiny snapshot is force-uploaded over the rich backup
+    await clearAll()
+    await addLog('tiny')
+    expect(await syncNow('local')).toBe('pushed')
+    const info = await loadCloudInfo()
+    expect(info?.previousAt).toBeTruthy()
+
+    expect(await restorePrevious()).toBe('pulled')
+    expect(await db.logs.count()).toBe(bigCount)
+    expect(downloads.some((d) => d.includes('before-pull'))).toBe(true)
+  })
+
+  it('opting out of the leaderboard removes the daily totals from the cloud', async () => {
+    await db.sessions.add({ start: Date.now(), minutes: 45, kind: 'pomodoro', skillId: null, date: today() })
+    await saveProfile({ display_name: 'Optout', avatar: '🙂', country: null, leaderboard_opt_in: true })
+    await pushDailyStats()
+    expect((await pg.query(`select count(*)::int as n from daily_activity where user_id = '00000000-0000-0000-0000-0000000000aa'`)).rows[0]).toEqual({ n: 1 })
+    await saveProfile({ display_name: 'Optout', avatar: '🙂', country: null, leaderboard_opt_in: false })
+    expect((await pg.query(`select count(*)::int as n from daily_activity where user_id = '00000000-0000-0000-0000-0000000000aa'`)).rows[0]).toEqual({ n: 0 })
   })
 })
 

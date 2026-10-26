@@ -255,3 +255,9 @@ label.chk { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .lb td { padding: 9px 8px; border-bottom: 1px solid var(--border); }
 .lb tr.me td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .lb th:last-child, .lb td:last-child { text-align: right; }
+
+/* cloud status chip */
+.mini.cloud { margin-bottom: 8px; padding: 8px 12px; }
+.mini.cloud .s { font-size: 12px; }
+.mini.cloud.warn { border-color: var(--warn); }
+.mini.cloud.warn .s { color: var(--warn); }

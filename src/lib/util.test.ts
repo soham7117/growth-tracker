@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Flashcard } from '../db'
-import { addDays, currentStreak, fmtDuration, fmtMinutes, longestStreak, parseTags, sm2, today } from './util'
+import { addDays, currentStreak, fmtDuration, fmtMinutes, longestStreak, parseTags, sm2, timeAgo, today } from './util'
 
 describe('formatting', () => {
   it('formats durations', () => {
@@ -64,5 +64,16 @@ describe('sm2 spaced repetition', () => {
     let c = { ...card }
     for (let i = 0; i < 20; i++) c = { ...c, ...sm2(c, 1) } as Flashcard
     expect(c.ease).toBeGreaterThanOrEqual(1.3)
+  })
+})
+
+describe('timeAgo', () => {
+  const now = 1_000_000_000_000
+  it('formats relative times', () => {
+    expect(timeAgo(now - 10_000, now)).toBe('just now')
+    expect(timeAgo(now - 5 * 60_000, now)).toBe('5 min ago')
+    expect(timeAgo(now - 3 * 3600_000, now)).toBe('3 h ago')
+    expect(timeAgo(now - 2 * 86400_000, now)).toBe('2 d ago')
+    expect(timeAgo(now + 5000, now)).toBe('just now')
   })
 })

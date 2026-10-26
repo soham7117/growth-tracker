@@ -10,6 +10,8 @@
 --   daily_rows_accepted: 2                       my_rank score: 292.0 (rank 1 on an empty board)
 --   own_backup_rows_visible: 1                   other_user_sees_backups: 0, other_user_sees_activity: 0
 --   direct_table_insert: permission denied...    backups_after_delete: 0, activity_after_delete: 0
+--   previous_version_kept_after_shrink: true     restored_big_version: true (restore_revision: 5)
+--   activity_after_opt_out: 0                    account_rows_after_delete_account: 0
 
 do $$
 declare
@@ -17,7 +19,7 @@ declare
   other uuid := gen_random_uuid();
   res jsonb := '{}'::jsonb;
   r1 int; r2 int; n int; cnt int;
-  board jsonb; mine jsonb;
+  board jsonb; mine jsonb; flag boolean; r3 int;
 begin
   insert into auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
   values (uid, 'authenticated', 'authenticated', 'live-test-' || uid || '@example.invalid', '{"provider":"github","providers":["github"]}', '{}', now(), now()),
@@ -84,12 +86,39 @@ begin
 
   perform set_config('request.jwt.claim.sub', uid::text, true);
   perform set_config('request.jwt.claims', json_build_object('sub', uid::text, 'role', 'authenticated')::text, true);
+  -- safety net: a shrinking push keeps the larger version as the previous copy; restore swaps it back
+  reset role;
+  update public.backups set updated_at = now() - interval '10 seconds' where user_id = uid;
+  set local role authenticated;
+  r1 := public.push_backup(repeat('x', 4000), false, r2, 'auto-test');
+  reset role;
+  update public.backups set updated_at = now() - interval '10 seconds' where user_id = uid;
+  set local role authenticated;
+  r3 := public.push_backup('gt0.tiny', false, r1, 'auto-test');
+  select (prev_data is not null and octet_length(prev_data) >= 4000) into flag from public.backups;
+  res := res || jsonb_build_object('previous_version_kept_after_shrink', flag, 'shrink_push_revision', r3);
+  r1 := public.restore_previous_backup();
+  select (octet_length(data) >= 4000) into flag from public.backups;
+  res := res || jsonb_build_object('restore_revision', r1, 'restored_big_version', flag);
+
+  -- opting out of the leaderboard removes the daily totals
+  perform public.upsert_profile('Live Test', '🧪', 'IN', false);
+  select count(*) into cnt from public.daily_activity;
+  res := res || jsonb_build_object('activity_after_opt_out', cnt);
+
   perform public.delete_my_cloud_data();
   reset role;
   select count(*) into cnt from public.backups where user_id = uid;
   res := res || jsonb_build_object('backups_after_delete', cnt);
   select count(*) into cnt from public.daily_activity where user_id = uid;
   res := res || jsonb_build_object('activity_after_delete', cnt);
+
+  -- delete my account (runs as the function owner against auth.users)
+  set local role authenticated;
+  perform public.delete_my_account();
+  reset role;
+  select count(*) into cnt from auth.users where id = uid;
+  res := res || jsonb_build_object('account_rows_after_delete_account', cnt);
 
   raise exception 'LIVE_TEST_RESULT %', res::text; -- rolls everything back
 end $$;

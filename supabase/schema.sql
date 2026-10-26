@@ -43,6 +43,14 @@ create table if not exists public.backups (
   updated_at timestamptz not null default now()
 );
 
+-- One safety-net copy: the largest recent version, so an accidental overwrite with a tiny/empty
+-- backup can be undone with restore_previous_backup().
+alter table public.backups
+  add column if not exists prev_data text check (prev_data is null or octet_length(prev_data) <= 1500000),
+  add column if not exists prev_encrypted boolean,
+  add column if not exists prev_revision int,
+  add column if not exists prev_updated_at timestamptz;
+
 -- ───────────── row level security ─────────────
 
 alter table public.profiles enable row level security;
@@ -79,6 +87,10 @@ begin
         avatar = excluded.avatar,
         country = excluded.country,
         leaderboard_opt_in = excluded.leaderboard_opt_in;
+  -- opting out removes the daily totals that were only stored for the leaderboard
+  if not coalesce(p_opt_in, false) then
+    delete from public.daily_activity where user_id = uid;
+  end if;
 end $$;
 
 -- Optimistic-concurrency backup push. Returns the new revision, or raises 'conflict'.
@@ -93,9 +105,16 @@ declare
   uid uuid := auth.uid();
   cur int;
   last_at timestamptz;
+  old_data text;
+  old_enc boolean;
+  old_prev_data text;
+  old_prev_at timestamptz;
+  keep_prev boolean;
 begin
   if uid is null then raise exception 'not_authenticated' using errcode = '28000'; end if;
-  select revision, updated_at into cur, last_at from public.backups where user_id = uid for update;
+  select revision, updated_at, data, encrypted, prev_data, prev_updated_at
+    into cur, last_at, old_data, old_enc, old_prev_data, old_prev_at
+    from public.backups where user_id = uid for update;
   if cur is null then
     insert into public.backups (user_id, data, encrypted, revision, device)
     values (uid, p_data, coalesce(p_encrypted, false), 1, left(p_device, 60));
@@ -107,8 +126,16 @@ begin
   if last_at > now() - interval '3 seconds' then
     raise exception 'rate_limited' using errcode = 'P0001';
   end if;
+  -- keep the largest version of the last 7 days as the undo copy (normal growth just moves it along)
+  keep_prev := old_prev_data is null
+            or old_prev_at < now() - interval '7 days'
+            or octet_length(old_data) >= octet_length(old_prev_data);
   update public.backups
-     set data = p_data, encrypted = coalesce(p_encrypted, false), revision = cur + 1,
+     set prev_data = case when keep_prev then old_data else prev_data end,
+         prev_encrypted = case when keep_prev then old_enc else prev_encrypted end,
+         prev_revision = case when keep_prev then cur else prev_revision end,
+         prev_updated_at = case when keep_prev then last_at else prev_updated_at end,
+         data = p_data, encrypted = coalesce(p_encrypted, false), revision = cur + 1,
          device = left(p_device, 60), updated_at = now()
    where user_id = uid;
   return cur + 1;
@@ -154,6 +181,23 @@ begin
     n := n + 1;
   end loop;
   return n;
+end $$;
+
+create or replace function public.restore_previous_backup() returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  uid uuid := auth.uid();
+  b public.backups%rowtype;
+begin
+  if uid is null then raise exception 'not_authenticated' using errcode = '28000'; end if;
+  select * into b from public.backups where user_id = uid for update;
+  if b.user_id is null or b.prev_data is null then raise exception 'no_previous_backup' using errcode = 'P0001'; end if;
+  update public.backups
+     set data = b.prev_data, encrypted = coalesce(b.prev_encrypted, false), revision = b.revision + 1,
+         prev_data = b.data, prev_encrypted = b.encrypted, prev_revision = b.revision, prev_updated_at = b.updated_at,
+         device = 'restore', updated_at = now()
+   where user_id = uid;
+  return b.revision + 1;
 end $$;
 
 create or replace function public.delete_my_cloud_data() returns void
@@ -222,6 +266,7 @@ $$;
 revoke all on function public.upsert_profile(text, text, text, boolean) from public, anon, authenticated;
 revoke all on function public.push_backup(text, boolean, int, text) from public, anon, authenticated;
 revoke all on function public.sync_daily(jsonb) from public, anon, authenticated;
+revoke all on function public.restore_previous_backup() from public, anon, authenticated;
 revoke all on function public.delete_my_cloud_data() from public, anon, authenticated;
 revoke all on function public.delete_my_account() from public, anon, authenticated;
 revoke all on function public._leaderboard_all(text) from public, anon, authenticated;
@@ -231,6 +276,7 @@ revoke all on function public.my_rank(text) from public, anon, authenticated;
 grant execute on function public.upsert_profile(text, text, text, boolean) to authenticated;
 grant execute on function public.push_backup(text, boolean, int, text) to authenticated;
 grant execute on function public.sync_daily(jsonb) to authenticated;
+grant execute on function public.restore_previous_backup() to authenticated;
 grant execute on function public.delete_my_cloud_data() to authenticated;
 grant execute on function public.delete_my_account() to authenticated;
 grant execute on function public.my_rank(text) to authenticated;

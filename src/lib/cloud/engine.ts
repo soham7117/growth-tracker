@@ -46,6 +46,16 @@ async function requireClient() {
   return { client, userId: data.session.user.id }
 }
 
+/**
+ * If a different account signs in on this device, forget the old sync markers so the first sync is
+ * treated like a new device (a conflict is raised instead of silently mixing two accounts' data).
+ */
+function adoptUser(userId: string) {
+  const cs = getCloud()
+  if (cs.lastUserId && cs.lastUserId !== userId) updateCloud({ lastUserId: userId, lastRevision: null, lastHash: null })
+  else if (cs.lastUserId !== userId) updateCloud({ lastUserId: userId })
+}
+
 export async function loadProfile(): Promise<Profile | null> {
   const { client } = await requireClient()
   const { data, error } = await client.from('profiles').select('display_name, avatar, country, leaderboard_opt_in').maybeSingle()
@@ -89,9 +99,9 @@ export async function fetchLeaderboard(period: 'week' | 'month' | 'all'): Promis
 }
 
 async function remoteMeta(client: Awaited<ReturnType<typeof requireClient>>['client']) {
-  const { data, error } = await client.from('backups').select('revision, encrypted, updated_at, device').maybeSingle()
+  const { data, error } = await client.from('backups').select('revision, encrypted, updated_at, device, prev_updated_at').maybeSingle()
   if (error) throw error
-  return data as { revision: number; encrypted: boolean; updated_at: string; device: string | null } | null
+  return data as { revision: number; encrypted: boolean; updated_at: string; device: string | null; prev_updated_at: string | null } | null
 }
 
 async function push(client: Awaited<ReturnType<typeof requireClient>>['client'], expected: number, hash: string, json: string) {
@@ -129,7 +139,8 @@ export type SyncOutcome = SyncAction | 'pushed' | 'pulled'
 export async function syncNow(force?: 'local' | 'cloud'): Promise<SyncOutcome> {
   setStatus('syncing', 'Syncing…')
   try {
-    const { client } = await requireClient()
+    const { client, userId } = await requireClient()
+    adoptUser(userId)
     const cs = getCloud()
     let outcome: SyncOutcome = 'noop'
 
@@ -190,4 +201,33 @@ export async function isCloudBackupEncrypted() {
   const { client } = await requireClient()
   const meta = await remoteMeta(client)
   return meta?.encrypted ?? false
+}
+
+export interface CloudInfo {
+  revision: number
+  device: string | null
+  updatedAt: number
+  encrypted: boolean
+  previousAt: number | null // when the undo copy was saved, if there is one
+}
+
+export async function loadCloudInfo(): Promise<CloudInfo | null> {
+  const { client } = await requireClient()
+  const meta = await remoteMeta(client)
+  if (!meta) return null
+  return {
+    revision: meta.revision,
+    device: meta.device,
+    updatedAt: new Date(meta.updated_at).getTime(),
+    encrypted: meta.encrypted,
+    previousAt: meta.prev_updated_at ? new Date(meta.prev_updated_at).getTime() : null,
+  }
+}
+
+/** Swap the cloud backup with its saved previous version, then load it onto this device. */
+export async function restorePrevious() {
+  const { client } = await requireClient()
+  const { error } = await client.rpc('restore_previous_backup')
+  if (error) throw error
+  return syncNow('cloud')
 }
