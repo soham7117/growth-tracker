@@ -24,7 +24,7 @@ const tryQ = async (q: string, params?: unknown[]): Promise<{ r?: any; e?: strin
 await db.exec(`
   create role anon nologin; create role authenticated nologin;
   create schema auth;
-  create table auth.users (id uuid primary key);
+  create table auth.users (id uuid primary key, raw_app_meta_data jsonb not null default '{}'::jsonb);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
@@ -139,6 +139,18 @@ ok(r.r?.rows.length === 1 && Number(r.r.rows[0].rank) === 1, 'my_rank returns th
 await as('authenticated', C)
 r = await tryQ(`select * from leaderboard('week', 100)`)
 ok(r.r?.rows.every((x: any) => x.display_name !== 'Carol'), 'users who did not opt in never appear')
+
+// social-only sign-in backstop
+await as(null)
+{
+  const emailUser = await tryQ(`insert into auth.users (id, raw_app_meta_data) values ('00000000-0000-0000-0000-0000000000e1', '{"provider":"email"}')`)
+  ok(emailUser.e && /Email sign-up is disabled/.test(emailUser.e), 'email sign-ups are rejected by the trigger', emailUser.e)
+  const gh = await tryQ(`insert into auth.users (id, raw_app_meta_data) values ('00000000-0000-0000-0000-0000000000e2', '{"provider":"github"}')`)
+  ok(!gh.e, 'GitHub sign-ups are allowed', gh.e)
+  const google = await tryQ(`insert into auth.users (id, raw_app_meta_data) values ('00000000-0000-0000-0000-0000000000e3', '{"provider":"google"}')`)
+  ok(!google.e, 'Google sign-ups are allowed', google.e)
+  ok((await db.query(`select count(*)::int as n from auth.users where id = '00000000-0000-0000-0000-0000000000e1'`)).rows[0].n === 0, 'no email user was created')
+}
 
 // deletion
 await as('authenticated', A)

@@ -28,7 +28,7 @@ Open **Authentication → Providers** in Supabase and note the **Callback URL** 
 2. Authorized redirect URI: the Supabase callback URL. Copy the Client ID and secret into Supabase → Providers → Google → Enable.
 
 ## 3. Lock down what you don't use
-- **Authentication → Providers → Email: turn OFF.** The app doesn't offer email sign-in, and leaving it on lets anyone create unconfirmed accounts through the API.
+- **Authentication → Providers → Email: turn OFF.** The app doesn't offer email sign-in, and leaving it on lets anyone create unconfirmed accounts through the API. Dashboards sometimes don't apply this switch reliably, so `schema.sql` also installs a `block_email_signups` trigger that rejects email/password signups on the server (remove it with `drop trigger block_email_signups on auth.users;` if you ever add email sign-in). You can test it: an email signup request should answer "Email sign-up is disabled".
 - **Authentication → URL Configuration**
   - Site URL: your production URL (for example `https://growth-tracker-ecru.vercel.app`).
   - Redirect URLs: add the production URL with `/**` and `http://localhost:5173/**` for local development.

@@ -69,7 +69,7 @@ const addLog = (learned: string) => db.logs.add({ date: today(), learned, blocke
 beforeAll(async () => {
   await pg.exec(`
     create role anon nologin; create role authenticated nologin;
-    create schema auth; create table auth.users (id uuid primary key);
+    create schema auth; create table auth.users (id uuid primary key, raw_app_meta_data jsonb not null default '{}'::jsonb);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth, public to anon, authenticated; grant execute on function auth.uid() to anon, authenticated;
     insert into auth.users values ('00000000-0000-0000-0000-0000000000aa'), ('00000000-0000-0000-0000-0000000000bb');

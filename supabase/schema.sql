@@ -236,3 +236,23 @@ grant execute on function public.delete_my_account() to authenticated;
 grant execute on function public.my_rank(text) to authenticated;
 -- the public leaderboard can be read by anyone (guests included)
 grant execute on function public.leaderboard(text, int) to anon, authenticated;
+
+-- ───────────── hardening: social sign-in only ─────────────
+-- The app offers GitHub and Google sign-in only. As a server-side backstop (independent of the
+-- dashboard's Email provider switch), reject any new account created through email/password.
+-- If you later want email sign-in, run: drop trigger block_email_signups on auth.users;
+
+create or replace function public.block_email_signups() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(new.raw_app_meta_data ->> 'provider', '') = 'email' then
+    raise exception 'Email sign-up is disabled. Please use GitHub or Google.' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+
+revoke all on function public.block_email_signups() from public, anon, authenticated;
+
+drop trigger if exists block_email_signups on auth.users;
+create trigger block_email_signups before insert on auth.users
+  for each row execute function public.block_email_signups();
