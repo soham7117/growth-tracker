@@ -69,5 +69,8 @@ All writes go through validating SQL functions; clients cannot write tables dire
 - Remove a user entirely: Supabase dashboard → Authentication → Users → delete (cascades to all their rows).
 - Free plans have **no automatic backups**: periodically export important tables from the dashboard.
 
+## Smoke-testing a deployed project
+Paste [`supabase/smoke-test.sql`](../supabase/smoke-test.sql) into the Supabase SQL Editor and Run. It exercises the real functions as temporary test users (profile, backup push, conflict, rate limit, daily stats, leaderboard, privacy between users, deletion) and then raises an error on purpose so everything is rolled back. The expected values are listed at the top of the file; read them in the error message `LIVE_TEST_RESULT {...}`.
+
 ## Testing the SQL locally
 `npm test` runs `supabase/schema.test.ts`, which loads `schema.sql` into an in-memory Postgres (PGlite) and checks row-level security, input clamping, conflict handling, scoring and account deletion. Run it whenever you change the schema.
