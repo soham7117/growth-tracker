@@ -219,14 +219,14 @@ $$;
 
 -- ───────────── permissions ─────────────
 
-revoke all on function public.upsert_profile(text, text, text, boolean) from public;
-revoke all on function public.push_backup(text, boolean, int, text) from public;
-revoke all on function public.sync_daily(jsonb) from public;
-revoke all on function public.delete_my_cloud_data() from public;
-revoke all on function public.delete_my_account() from public;
-revoke all on function public._leaderboard_all(text) from public;
-revoke all on function public.leaderboard(text, int) from public;
-revoke all on function public.my_rank(text) from public;
+revoke all on function public.upsert_profile(text, text, text, boolean) from public, anon, authenticated;
+revoke all on function public.push_backup(text, boolean, int, text) from public, anon, authenticated;
+revoke all on function public.sync_daily(jsonb) from public, anon, authenticated;
+revoke all on function public.delete_my_cloud_data() from public, anon, authenticated;
+revoke all on function public.delete_my_account() from public, anon, authenticated;
+revoke all on function public._leaderboard_all(text) from public, anon, authenticated;
+revoke all on function public.leaderboard(text, int) from public, anon, authenticated;
+revoke all on function public.my_rank(text) from public, anon, authenticated;
 
 grant execute on function public.upsert_profile(text, text, text, boolean) to authenticated;
 grant execute on function public.push_backup(text, boolean, int, text) to authenticated;

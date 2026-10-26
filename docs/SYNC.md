@@ -56,6 +56,8 @@ Free projects pause after a week with no activity. The workflow in `.github/work
 
 All writes go through validating SQL functions; clients cannot write tables directly. See the comments in `schema.sql`.
 
+> **Expected advisor warnings.** Supabase's security advisor will list the `SECURITY DEFINER` functions as warnings ("Public/Signed-in users can execute SECURITY DEFINER function"). That is by design: these functions are the only write path, each checks `auth.uid()` and validates its input, and only `leaderboard` is callable without signing in.
+
 ## How sync behaves
 - **Manual:** *Sync now* decides automatically: push local changes, pull newer cloud data, or flag a **conflict** when both changed. *Upload* and *Download* force one direction (Download saves a copy of your current data first).
 - **Automatic:** pushes a few seconds after changes and checks the cloud every minute. It never overwrites on conflict; it pauses and asks.
