@@ -1,5 +1,5 @@
 import { Suspense, useEffect } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { useBackgroundLoop, useNow } from './lib/hooks'
 import { useSettings } from './lib/settings'
 import { elapsedMs, useTimer } from './lib/timer'
@@ -12,6 +12,7 @@ import { ROUTES } from './routes'
 
 export default function App() {
   const s = useSettings()
+  const { pathname } = useLocation()
   useBackgroundLoop()
   useAutoSync() // no-op unless cloud sync and auto mode are switched on
 
@@ -33,7 +34,7 @@ export default function App() {
       </a>
       <Sidebar />
       <main className="main" id="main" tabIndex={-1}>
-        <ErrorBoundary>
+        <ErrorBoundary resetKey={pathname}>
           <Suspense fallback={<p className="sub" role="status">Loading…</p>}>
             <Routes>
               {ROUTES.map(({ path, element: Page }) => (
