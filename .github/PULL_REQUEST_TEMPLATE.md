@@ -4,6 +4,7 @@
 
 ## Checklist
 
+- [ ] The PR title follows Conventional Commits (`type(scope): summary`); it becomes the squash-commit message
 - [ ] `npm test` and `npm run build` pass locally
 - [ ] UI changes were checked in the browser (include a screenshot if visual)
 - [ ] New or changed quiz questions have exactly 1 correct + 3 distinct wrong answers, and code snippets were run in real Python

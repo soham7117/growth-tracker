@@ -12,6 +12,16 @@ npm run typecheck
 npm run build   # must pass before opening a PR
 ```
 
+## Git workflow
+
+- `main` is linear and always deployable: pull requests are **squash-merged**, so each PR becomes exactly one commit.
+- The **PR title is the commit message** and must follow [Conventional Commits](https://www.conventionalcommits.org): `type(scope): summary`.
+  Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. A CI check enforces it.
+  Examples: `feat(sync): add previous-version restore`, `fix(ui): keep focus inside the dialog`, `chore(deps): bump vite`.
+- Use the PR description for the *why*; keep the title in the imperative mood and under about 70 characters.
+- One logical change per PR. Branch names like `feat/short-name` or `fix/short-name`; branches are deleted after merge.
+- Never force-push `main`. Releases are tagged `vX.Y.Z` from `main` and listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## Adding or fixing quiz questions
 
 Questions live in [`src/data/quizzes.ts`](src/data/quizzes.ts), keyed by roadmap item id (`<section>:<slug>`, see `src/data/pythonRoadmap.ts`).
