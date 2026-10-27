@@ -171,7 +171,7 @@ flowchart LR
 ```
 
 - **Bundles:** the initial chunk is small; charts, the roadmap data and the Supabase client load on demand.
-- **Environments:** build-time variables choose the built-in Supabase project; users can also paste their own project in Settings.
+- **Environments:** build-time variables choose the Supabase project; there is no in-app connection setting, so the hosted site always talks to the project it was built for.
 - **Free-tier caveats:** Supabase pauses inactive projects after a week and has no automatic backups on the free plan.
   Add the repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` so the keep-alive workflow can run.
 

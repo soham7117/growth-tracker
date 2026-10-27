@@ -2,9 +2,6 @@ import { createStore } from '../storage'
 
 export interface CloudSettings {
   enabled: boolean // master switch; when false nothing cloud-related loads
-  connection: 'builtin' | 'custom'
-  customUrl: string
-  customKey: string // Supabase anon (public) key; protected by row-level security
   backup: boolean // upload a private backup snapshot
   auto: boolean // automatic sync instead of manual push/pull
   encrypt: boolean // encrypt the backup in the browser with a passphrase
@@ -16,9 +13,6 @@ export interface CloudSettings {
 
 export const CLOUD_DEFAULTS: CloudSettings = {
   enabled: false,
-  connection: 'builtin',
-  customUrl: '',
-  customKey: '',
   backup: true,
   auto: false,
   encrypt: true,

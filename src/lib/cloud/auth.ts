@@ -65,7 +65,7 @@ export function useSession() {
       cancelled = true
       unsub?.()
     }
-  }, [cs.enabled, cs.connection, cs.customUrl, cs.customKey])
+  }, [cs.enabled])
 
   return session
 }

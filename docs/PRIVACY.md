@@ -8,7 +8,7 @@ Growth Tracker is **local-first**. By default everything stays in your browser a
 - "Practice" buttons open LeetCode, GeeksforGeeks or Google search in a new window. This app sends them no personal data.
 
 ## With cloud sync (optional, you turn it on)
-Data goes to the Supabase project the site is configured with (or your own project if you chose "My own Supabase").
+Data goes to the Supabase project the site is configured with.
 
 | What | Why | Visible to others? |
 |---|---|---|

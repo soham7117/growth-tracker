@@ -15,7 +15,7 @@ export default function LeaderboardPage() {
   const [rows, setRows] = useState<BoardRow[] | null>(null)
   const [me, setMe] = useState<BoardRow | null>(null)
   const [error, setError] = useState('')
-  const conn = activeConnection(cs)
+  const conn = activeConnection()
 
   useEffect(() => {
     if (!conn) return
@@ -32,7 +32,7 @@ export default function LeaderboardPage() {
     return () => {
       cancelled = true
     }
-  }, [period, cs.connection, cs.customUrl, cs.customKey, session?.user.id])
+  }, [period, session?.user.id])
 
   return (
     <>
@@ -55,7 +55,7 @@ export default function LeaderboardPage() {
       {!conn && (
         <Card>
           <Empty>
-            The leaderboard needs a cloud connection, which isn't set up on this site. You can connect your own Supabase project in <Link to="/settings">Settings</Link>.
+            The leaderboard isn't available on this deployment.
           </Empty>
         </Card>
       )}
