@@ -1,11 +1,6 @@
 # Cloud sync & leaderboard: setup guide
 
-Growth Tracker works fully offline. Cloud sync is **optional** and uses [Supabase](https://supabase.com) (Postgres + Auth). You can use it two ways:
-
-| Mode | Who sets it up | Use when |
-|---|---|---|
-| **Built-in** | The site owner adds two env vars (below) | You host the public site and want visitors to sign in |
-| **My own Supabase** | Each user pastes their own project URL + anon key in *Settings → Cloud sync* | Forks, self-hosting, or you don't want to hold other people's data |
+Growth Tracker works fully offline. Cloud sync is **optional** and uses [Supabase](https://supabase.com) (Postgres + Auth). The hosted site connects to one Supabase project that the site owner configures with two build-time variables (section 4). Forks that want their own backend create their own project and set the same variables.
 
 Sign-in is **GitHub and Google only** (no passwords stored, no email sending needed). Email sign-in needs a custom SMTP sender and is not offered yet.
 
@@ -36,11 +31,9 @@ Open **Authentication → Providers** in Supabase and note the **Callback URL** 
 - Never put the **service_role** key anywhere in this app or repo. Only the **anon (public)** key is used; row-level security protects the data.
 
 ## 4. Connect the app
-**Built-in mode (site owner):** copy *Project Settings → API → Project URL* and *anon public key*.
+Copy *Project Settings → API → Project URL* and *anon public key*.
 - Vercel → Project → Settings → Environment Variables: add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then redeploy.
 - Local dev: copy `.env.example` to `.env.local` and fill the same two values.
-
-**My own Supabase mode (any user):** *Settings → Cloud sync → Enable → My own Supabase project*, paste the URL and anon key.
 
 ## 5. Keep a free project awake (optional)
 Free projects pause after a week with no activity. The workflow in `.github/workflows/keepalive.yml` pings the public leaderboard function every 3 days. Add repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` to activate it. Without them it does nothing.
@@ -59,9 +52,9 @@ All writes go through validating SQL functions; clients cannot write tables dire
 > **Expected advisor warnings.** Supabase's security advisor will list the `SECURITY DEFINER` functions as warnings ("Public/Signed-in users can execute SECURITY DEFINER function"). That is by design: these functions are the only write path, each checks `auth.uid()` and validates its input, and only `leaderboard` is callable without signing in.
 
 ## How sync behaves
-- **Manual:** *Sync now* decides automatically: push local changes, pull newer cloud data, or flag a **conflict** when both changed. *Upload* and *Download* force one direction (Download saves a copy of your current data first).
+- **Manual:** *Sync now* decides automatically: push local changes, pull newer cloud data, or flag a **conflict** when both changed. On a conflict you choose **Keep this device** or **Keep cloud copy** (the latter saves a copy of your current data first).
 - **Automatic:** pushes a few seconds after changes and checks the cloud every minute. It never overwrites on conflict; it pauses and asks.
-- **Safety nets:** the cloud keeps one *previous version* (the largest backup of the last 7 days), so an accidental overwrite with a tiny or empty backup can be undone with **Restore previous cloud version**. "Download" and "Keep cloud copy" first save a JSON copy of this device. If a different account signs in on the same device, the first sync is treated as a new device and raises a conflict instead of mixing the two accounts.
+- **Safety nets:** the cloud keeps one *previous version* (the largest backup of the last 7 days), so an accidental overwrite with a tiny or empty backup can be undone with **Restore previous cloud version**. "Keep cloud copy" and "Restore previous cloud version" first save a JSON copy of this device. If a different account signs in on the same device, the first sync is treated as a new device and raises a conflict instead of mixing the two accounts.
 - **Encryption:** if enabled, backups are encrypted in the browser (PBKDF2 + AES-GCM). The passphrase lives only in the current tab. Lose it and the encrypted cloud copy cannot be recovered.
 - The leaderboard numbers are separate from the backup and are only sent if you opted in.
 

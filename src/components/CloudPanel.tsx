@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card } from './ui'
 import { signInWithProvider, signOut, useSession } from '../lib/cloud/auth'
-import { activeConnection, hasBuiltin } from '../lib/cloud/client'
+import { activeConnection } from '../lib/cloud/client'
 import { deleteAccount, deleteCloudData, friendlyError, loadCloudInfo, loadProfile, restorePrevious, saveProfile, syncNow, type CloudInfo, type Profile } from '../lib/cloud/engine'
 import { updateCloud, useCloudSettings } from '../lib/cloud/settings'
 import { getPassphrase, setPassphrase, useSyncStatus } from '../lib/cloud/status'
@@ -18,7 +18,7 @@ export default function CloudPanel() {
   const [profile, setProfile] = useState<Profile>({ display_name: '', avatar: '🙂', country: null, leaderboard_opt_in: false })
   const [profileMsg, setProfileMsg] = useState('')
   const [info, setInfo] = useState<CloudInfo | null>(null)
-  const conn = activeConnection(cs)
+  const conn = activeConnection()
   // Which sign-in providers the project has switched on (public endpoint); null = unknown yet.
   const [providers, setProviders] = useState<Record<string, boolean> | null>(null)
 
@@ -78,12 +78,8 @@ export default function CloudPanel() {
   return (
     <Card title="☁️ Cloud sync & leaderboard" className="span2">
       <p className="sub" style={{ marginTop: 0 }}>
-        Optional. The app works fully offline; turning this on lets you back up your progress and appear on the leaderboard. Your journal is never shown to anyone. See{' '}
-        <a href="https://github.com/soham7117/growth-tracker/blob/main/docs/SYNC.md" target="_blank" rel="noreferrer">
-          the setup guide
-        </a>{' '}
-        and{' '}
-        <a href="https://github.com/soham7117/growth-tracker/blob/main/docs/PRIVACY.md" target="_blank" rel="noreferrer">
+        Optional. The app works fully offline; turning this on lets you back up your progress and appear on the leaderboard. Your journal is never shown to anyone. See the{' '}
+        <a href="https://github.com/soham7117/growth-tracker/blob/main/docs/PRIVACY.md" target="_blank" rel="noreferrer noopener">
           privacy notes
         </a>
         .
@@ -97,34 +93,7 @@ export default function CloudPanel() {
 
       {cs.enabled && (
         <div className="form">
-          <div>
-            <div className="lbl" style={{ marginTop: 0 }}>
-              Connection
-            </div>
-            <div className="row">
-              <label className="chk">
-                <input type="radio" name="conn" checked={cs.connection === 'builtin'} disabled={!hasBuiltin} onChange={() => updateCloud({ connection: 'builtin' })} /> Built-in {!hasBuiltin && '(not configured on this site)'}
-              </label>
-              <label className="chk">
-                <input type="radio" name="conn" checked={cs.connection === 'custom'} onChange={() => updateCloud({ connection: 'custom' })} /> My own Supabase project
-              </label>
-            </div>
-          </div>
-
-          {cs.connection === 'custom' && (
-            <div className="grid g2">
-              <label className="f">
-                Project URL
-                <input type="text" placeholder="https://xxxx.supabase.co" value={cs.customUrl} onChange={(e) => updateCloud({ customUrl: e.target.value })} />
-              </label>
-              <label className="f">
-                Anon (public) key
-                <input type="text" placeholder="eyJ…" value={cs.customKey} onChange={(e) => updateCloud({ customKey: e.target.value })} />
-              </label>
-            </div>
-          )}
-
-          {!conn && <p className="pill warn" style={{ alignSelf: 'start' }}>No valid connection yet. Pick one above.</p>}
+          {!conn && <p className="pill warn" style={{ alignSelf: 'start' }}>Cloud sync isn't available on this deployment.</p>}
 
           {conn && session === undefined && <p className="sub">Checking sign-in…</p>}
 
@@ -228,20 +197,6 @@ export default function CloudPanel() {
                 <div className="row">
                   <button className="btn" onClick={doSync()}>
                     Sync now
-                  </button>
-                  <button
-                    className="btn ghost"
-                    onClick={() => confirm('Overwrite the cloud backup with the data on this device?') && doSync('local')()}
-                    disabled={!cs.backup}
-                  >
-                    ⬆ Upload (overwrite cloud)
-                  </button>
-                  <button
-                    className="btn ghost"
-                    onClick={() => confirm('Replace the data on this device with the cloud backup? A copy of your current data will be downloaded first.') && doSync('cloud')()}
-                    disabled={!cs.backup}
-                  >
-                    ⬇ Download (overwrite this device)
                   </button>
                 </div>
                 {status.phase !== 'idle' && (
