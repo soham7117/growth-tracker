@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useNow } from '../lib/hooks'
 import { elapsedMs, useTimer } from '../lib/timer'
 import { fmtDuration, timeAgo } from '../lib/util'
-import { useSession } from '../lib/cloud/auth'
+import { signOut, useSession } from '../lib/cloud/auth'
 import { useCloudSettings } from '../lib/cloud/settings'
 import { useSyncStatus } from '../lib/cloud/status'
 import { ROUTES } from '../routes'
@@ -37,9 +37,17 @@ function CloudChip() {
           ? `☁️ Synced ${timeAgo(cs.lastSyncedAt)}`
           : '☁️ Signed in'
   return (
-    <NavLink to="/settings" className={`mini cloud ${bad ? 'warn' : ''}`} title="Open cloud sync settings">
-      <div className="s">{text}</div>
-    </NavLink>
+    <div className="cloud-box">
+      <NavLink to="/settings" className={`mini cloud ${bad ? 'warn' : ''}`} title="Open cloud sync settings">
+        <div className="s">{text}</div>
+      </NavLink>
+      <button
+        className="btn ghost small signout"
+        onClick={() => confirm('Sign out? Your data stays on this device.') && signOut().catch(() => {})}
+      >
+        Sign out
+      </button>
+    </div>
   )
 }
 

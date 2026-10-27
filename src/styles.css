@@ -280,6 +280,9 @@ label.chk { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .lb th:last-child, .lb td:last-child { text-align: right; }
 
 /* cloud status chip */
+.cloud-box { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.cloud-box .mini.cloud { margin-bottom: 0; }
+.signout { width: 100%; }
 .mini.cloud { margin-bottom: 8px; padding: 8px 12px; }
 .mini.cloud .s { font-size: 12px; }
 .mini.cloud.warn { border-color: var(--warn); }
