@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import { notify } from './alarm'
 import { getSettings } from './settings'
+import { readString, writeString } from './storage'
 import { timer } from './timer'
 import { today } from './util'
 
@@ -33,8 +34,8 @@ export function useBackgroundLoop() {
       const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
       const fired = (key: string) => {
         const k = `gt-fired-${key}-${today()}`
-        if (localStorage.getItem(k)) return true
-        localStorage.setItem(k, '1')
+        if (readString(k)) return true
+        writeString(k, '1')
         return false
       }
       if (s.dailyReminder && hm === s.dailyReminder && !fired('daily')) {
