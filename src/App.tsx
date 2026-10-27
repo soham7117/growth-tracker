@@ -6,6 +6,7 @@ import { elapsedMs, useTimer } from './lib/timer'
 import { fmtDuration } from './lib/util'
 import { useAutoSync } from './lib/cloud/autosync'
 import ErrorBoundary from './components/ErrorBoundary'
+import { DialogHost } from './components/Dialogs'
 import { MobileNav, Sidebar } from './components/Sidebar'
 import NotFound from './pages/NotFound'
 import { ROUTES } from './routes'
@@ -46,6 +47,7 @@ export default function App() {
         </ErrorBoundary>
       </main>
       <MobileNav />
+      <DialogHost />
     </div>
   )
 }

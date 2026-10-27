@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { download, today } from '../lib/util'
 import { exportAll } from '../db'
+import { toast } from './Dialogs'
 
 interface State {
   error: Error | null
@@ -46,7 +47,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode; rese
     try {
       download(`growth-tracker-backup-${today()}.json`, JSON.stringify(await exportAll(), null, 2))
     } catch {
-      alert('Could not export data.')
+      toast('Could not export your data.', 'error')
     }
   }
 

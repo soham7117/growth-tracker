@@ -5,6 +5,7 @@ import { fmtDuration, timeAgo } from '../lib/util'
 import { signOut, useSession } from '../lib/cloud/auth'
 import { useCloudSettings } from '../lib/cloud/settings'
 import { useSyncStatus } from '../lib/cloud/status'
+import { confirmDialog, toast } from './Dialogs'
 import { ROUTES } from '../routes'
 
 function MiniTimer() {
@@ -43,7 +44,16 @@ function CloudChip() {
       </NavLink>
       <button
         className="btn ghost small signout"
-        onClick={() => confirm('Sign out? Your data stays on this device.') && signOut().catch(() => {})}
+        onClick={async () => {
+          const ok = await confirmDialog({ title: 'Sign out?', message: 'Your data stays on this device. You can sign back in any time from Settings.', confirmLabel: 'Sign out' })
+          if (!ok) return
+          try {
+            await signOut()
+            toast('Signed out.', 'success')
+          } catch {
+            toast('Could not sign out. Check your connection and try again.', 'error')
+          }
+        }}
       >
         Sign out
       </button>

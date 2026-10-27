@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { confirmDialog } from '../components/Dialogs'
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from 'recharts'
 import { db, type Skill } from '../db'
 import { Card, Empty } from '../components/ui'
@@ -23,7 +24,13 @@ export default function SkillsPage() {
 
   async function remove(s: Skill) {
     const kids = skills.filter((x) => x.parentId === s.id)
-    if (!confirm(`Delete "${s.name}"${kids.length ? ` and ${kids.length} sub-skill(s)` : ''}? Logged sessions keep their time.`)) return
+    const ok = await confirmDialog({
+      title: `Delete "${s.name}"?`,
+      message: `${kids.length ? `Its ${kids.length} sub-skill(s) will be removed too. ` : ''}Logged sessions keep their time.`,
+      confirmLabel: 'Delete skill',
+      tone: 'danger',
+    })
+    if (!ok) return
     await db.transaction('rw', db.skills, async () => {
       for (const k of kids) await db.skills.delete(k.id!)
       await db.skills.delete(s.id!)

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { confirmDialog } from '../components/Dialogs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Goal } from '../db'
 import { Card, Empty, Progress } from '../components/ui'
@@ -75,7 +76,8 @@ function GoalCard({ goal, ms }: { goal: Goal; ms: { id?: number; title: string; 
   }
 
   async function remove() {
-    if (!confirm(`Delete goal "${goal.title}" and its milestones?`)) return
+    const ok = await confirmDialog({ title: 'Delete this goal?', message: `"${goal.title}" and its milestones will be removed.`, confirmLabel: 'Delete goal', tone: 'danger' })
+    if (!ok) return
     await db.milestones.where('goalId').equals(goal.id!).delete()
     await db.goals.delete(goal.id!)
   }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card } from './ui'
+import { confirmDialog, toast } from './Dialogs'
 import { signInWithProvider, signOut, useSession } from '../lib/cloud/auth'
 import { activeConnection } from '../lib/cloud/client'
 import { deleteAccount, deleteCloudData, friendlyError, loadCloudInfo, loadProfile, restorePrevious, saveProfile, syncNow, type CloudInfo, type Profile } from '../lib/cloud/engine'
@@ -230,11 +231,14 @@ export default function CloudPanel() {
                   <div>
                     <button
                       className="btn ghost small"
-                      onClick={() =>
-                        confirm(
-                          'Swap the cloud backup with its previous version and load it onto this device? A copy of your current local data is downloaded first, and you can swap back the same way.'
-                        ) && run(async () => void (await restorePrevious()))()
-                      }
+                      onClick={async () => {
+                        const ok = await confirmDialog({
+                          title: 'Restore the previous cloud version?',
+                          message: 'This swaps the cloud backup with its previous version and loads it onto this device. A copy of your current local data is downloaded first, and you can swap back the same way.',
+                          confirmLabel: 'Restore',
+                        })
+                        if (ok) await run(async () => void (await restorePrevious()))()
+                      }}
                     >
                       ↩ Restore previous cloud version (saved {timeAgo(info.previousAt)})
                     </button>
@@ -249,7 +253,16 @@ export default function CloudPanel() {
                 <button
                   className="btn danger small"
                   onClick={run(async () => {
-                    if (confirm('Delete your cloud backup and leaderboard history? Data on this device stays.')) await deleteCloudData()
+                    const ok = await confirmDialog({
+                      title: 'Delete your cloud data?',
+                      message: 'This removes your cloud backup and leaderboard history. Data on this device stays.',
+                      confirmLabel: 'Delete cloud data',
+                      tone: 'danger',
+                    })
+                    if (ok) {
+                      await deleteCloudData()
+                      toast('Cloud data deleted.', 'success')
+                    }
                   })}
                 >
                   Delete my cloud data
@@ -257,7 +270,16 @@ export default function CloudPanel() {
                 <button
                   className="btn danger small"
                   onClick={run(async () => {
-                    if (confirm('Permanently delete your account and everything stored in the cloud? Data on this device stays.')) await deleteAccount()
+                    const ok = await confirmDialog({
+                      title: 'Delete your account?',
+                      message: 'This permanently deletes your account and everything stored in the cloud. It cannot be undone. Data on this device stays.',
+                      confirmLabel: 'Delete account',
+                      tone: 'danger',
+                    })
+                    if (ok) {
+                      await deleteAccount()
+                      toast('Account deleted.', 'success')
+                    }
                   })}
                 >
                   Delete my account
