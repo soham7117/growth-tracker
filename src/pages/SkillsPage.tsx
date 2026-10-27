@@ -59,7 +59,7 @@ export default function SkillsPage() {
             <button className="btn ghost small" onClick={() => db.skills.update(s.id!, { lastPracticed: today() })} title="Mark as practiced today">
               ✓ today
             </button>
-            <button className="x" onClick={() => remove(s)}>
+            <button className="x" aria-label="Delete" onClick={() => remove(s)}>
               ✕
             </button>
           </div>

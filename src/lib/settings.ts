@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { createStore } from './storage'
 
 export interface Settings {
   focusMin: number
@@ -28,34 +28,8 @@ export const DEFAULTS: Settings = {
   theme: 'dark',
 }
 
-const KEY = 'gt-settings'
-let current: Settings = load()
-const listeners = new Set<() => void>()
+const store = createStore<Settings>('gt-settings', DEFAULTS)
 
-function load(): Settings {
-  try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }
-  } catch {
-    return DEFAULTS
-  }
-}
-
-export function getSettings() {
-  return current
-}
-
-export function updateSettings(patch: Partial<Settings>) {
-  current = { ...current, ...patch }
-  localStorage.setItem(KEY, JSON.stringify(current))
-  listeners.forEach((l) => l())
-}
-
-export function useSettings() {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb)
-      return () => listeners.delete(cb)
-    },
-    () => current
-  )
-}
+export const getSettings = store.get
+export const updateSettings = store.update
+export const useSettings = store.use

@@ -1,5 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getCloud, type CloudSettings } from './settings'
 
 /** Built-in connection comes from build-time env vars (public anon key, protected by row-level security). */
 export const BUILTIN = {
@@ -8,12 +7,8 @@ export const BUILTIN = {
 }
 export const hasBuiltin = !!(BUILTIN.url && BUILTIN.key)
 
-export function activeConnection(cs: Pick<CloudSettings, 'connection' | 'customUrl' | 'customKey'> = getCloud()) {
-  if (cs.connection === 'builtin') return hasBuiltin ? BUILTIN : null
-  const url = cs.customUrl.trim()
-  const key = cs.customKey.trim()
-  return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(url) && key.length > 20 ? { url, key } : null
-}
+/** The connection this site was built with, or null when sync isn't configured (the app is then purely local). */
+export const activeConnection = () => (hasBuiltin ? BUILTIN : null)
 
 let cached: { id: string; client: SupabaseClient } | null = null
 

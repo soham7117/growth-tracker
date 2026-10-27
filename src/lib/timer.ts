@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { db, touchSkill } from '../db'
 import { alarm, unlockAudio } from './alarm'
 import { getSettings } from './settings'
+import { readJson, writeJson } from './storage'
 import { today } from './util'
 
 export type Mode = 'pomodoro' | 'stopwatch' | 'countdown'
@@ -39,13 +40,7 @@ function fresh(mode: Mode = 'pomodoro', skillId: number | null = null, countdown
 }
 
 function load(): TimerState {
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (raw) return { ...fresh(), ...JSON.parse(raw) }
-  } catch {
-    /* ignore */
-  }
-  return fresh()
+  return readJson(KEY, fresh())
 }
 
 let state: TimerState = load()
@@ -53,7 +48,7 @@ const listeners = new Set<() => void>()
 
 function set(patch: Partial<TimerState>) {
   state = { ...state, ...patch }
-  localStorage.setItem(KEY, JSON.stringify(state))
+  writeJson(KEY, state)
   listeners.forEach((l) => l())
 }
 

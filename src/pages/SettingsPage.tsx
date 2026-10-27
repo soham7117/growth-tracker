@@ -6,6 +6,7 @@ import { beep, notify, requestNotifications, unlockAudio } from '../lib/alarm'
 import { loadDemoData } from '../lib/demo'
 import { DEFAULTS, updateSettings, useSettings } from '../lib/settings'
 import { timer } from '../lib/timer'
+import { readString, writeString } from '../lib/storage'
 import { download, today } from '../lib/util'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -23,7 +24,7 @@ export default function SettingsPage() {
 
   async function doExport() {
     download(`growth-tracker-backup-${today()}.json`, JSON.stringify(await exportAll(), null, 2))
-    localStorage.setItem('gt-last-backup', today())
+    writeString('gt-last-backup', today())
     setMsg('Backup downloaded.')
   }
 
@@ -151,7 +152,7 @@ export default function SettingsPage() {
         <Card title="Your data">
           <div className="form">
             <p className="sub" style={{ margin: 0 }}>
-              Last backup: {localStorage.getItem('gt-last-backup') || 'never'}. Download a backup regularly — browser data can be cleared.
+              Last backup: {readString('gt-last-backup') || 'never'}. Download a backup regularly — browser data can be cleared.
             </p>
             <div className="row">
               <button className="btn" onClick={doExport}>
