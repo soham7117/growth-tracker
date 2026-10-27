@@ -88,7 +88,7 @@ function GoalCard({ goal, ms }: { goal: Goal; ms: { id?: number; title: string; 
           <label className="chk">
             <input type="checkbox" checked={goal.done} onChange={(e) => db.goals.update(goal.id!, { done: e.target.checked })} /> done
           </label>
-          <button className="x" onClick={remove}>
+          <button className="x" aria-label="Delete" onClick={remove}>
             ✕
           </button>
         </div>
@@ -109,7 +109,7 @@ function GoalCard({ goal, ms }: { goal: Goal; ms: { id?: number; title: string; 
                 {m.title}
                 {m.week && <span className="pill">{m.week}</span>}
               </label>
-              <button className="x" onClick={() => db.milestones.delete(m.id!)}>
+              <button className="x" aria-label="Delete" onClick={() => db.milestones.delete(m.id!)}>
                 ✕
               </button>
             </div>

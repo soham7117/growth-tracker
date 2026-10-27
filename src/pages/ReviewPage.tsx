@@ -142,7 +142,7 @@ export default function ReviewPage() {
                         <span>interval {c.interval}d</span>
                       </div>
                     </div>
-                    <button className="x" onClick={() => db.flashcards.delete(c.id!)}>
+                    <button className="x" aria-label="Delete" onClick={() => db.flashcards.delete(c.id!)}>
                       ✕
                     </button>
                   </div>

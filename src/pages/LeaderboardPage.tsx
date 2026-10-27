@@ -66,7 +66,7 @@ export default function LeaderboardPage() {
           {!error && rows === null && <p className="sub">Loading…</p>}
           {rows && rows.length === 0 && <Empty>No one is on this board yet. Be the first: turn on the leaderboard in Settings → Cloud sync.</Empty>}
           {rows && rows.length > 0 && (
-            <table className="lb">
+            <div className="lb-wrap"><table className="lb">
               <thead>
                 <tr>
                   <th>#</th>
@@ -90,7 +90,7 @@ export default function LeaderboardPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
           {me && !rows?.some((r) => r.is_me) && (
             <p className="sub">
