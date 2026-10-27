@@ -197,12 +197,6 @@ export async function deleteAccount() {
   updateCloud({ lastRevision: null, lastHash: null })
 }
 
-export async function isCloudBackupEncrypted() {
-  const { client } = await requireClient()
-  const meta = await remoteMeta(client)
-  return meta?.encrypted ?? false
-}
-
 export interface CloudInfo {
   revision: number
   device: string | null

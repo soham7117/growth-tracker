@@ -13,14 +13,14 @@ export class WrongPassphraseError extends Error {
   }
 }
 
-export function toB64(bytes: Uint8Array) {
+function toB64(bytes: Uint8Array) {
   let s = ''
   const chunk = 0x8000
   for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode(...bytes.subarray(i, i + chunk))
   return btoa(s)
 }
 
-export function fromB64(b64: string) {
+function fromB64(b64: string) {
   const s = atob(b64)
   const out = new Uint8Array(s.length)
   for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i)

@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react'
 import { useDictation } from '../lib/speech'
-import { addDays, dstr, today } from '../lib/util'
+import { addDays, today } from '../lib/util'
 import type { Skill } from '../db'
 
 export function Card({ title, right, children, className = '' }: { title?: string; right?: ReactNode; children: ReactNode; className?: string }) {
@@ -138,5 +138,3 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
     </div>
   )
 }
-
-export const todayStr = () => dstr(new Date())

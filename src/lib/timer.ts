@@ -52,8 +52,6 @@ function set(patch: Partial<TimerState>) {
   listeners.forEach((l) => l())
 }
 
-export const getTimer = () => state
-
 export function elapsedMs(s: TimerState = state, now = Date.now()) {
   return s.accMs + (s.running && s.startedAt ? now - s.startedAt : 0)
 }

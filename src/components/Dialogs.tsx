@@ -47,7 +47,7 @@ function settle(id: number, ok: boolean) {
   item.resolve(ok)
 }
 
-export function dismissToast(id: number) {
+function dismissToast(id: number) {
   toasts = toasts.filter((t) => t.id !== id)
   emit()
 }

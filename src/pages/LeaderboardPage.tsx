@@ -4,12 +4,10 @@ import { Card, Empty, Tabs } from '../components/ui'
 import { useSession } from '../lib/cloud/auth'
 import { activeConnection } from '../lib/cloud/client'
 import { fetchLeaderboard, friendlyError, type BoardRow } from '../lib/cloud/engine'
-import { useCloudSettings } from '../lib/cloud/settings'
 
 type Period = 'week' | 'month' | 'all'
 
 export default function LeaderboardPage() {
-  const cs = useCloudSettings()
   const session = useSession()
   const [period, setPeriod] = useState<Period>('week')
   const [rows, setRows] = useState<BoardRow[] | null>(null)

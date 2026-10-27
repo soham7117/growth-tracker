@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const SR: any = typeof window !== 'undefined' ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : null
 
-export const speechSupported = !!SR
+const speechSupported = !!SR
 
 /**
  * Browser-built-in speech recognition. No API keys or tokens.
