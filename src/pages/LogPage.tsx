@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { confirmDialog } from '../components/Dialogs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type LogEntry } from '../db'
 import { Card, DictateButton, Empty, RichText } from '../components/ui'
@@ -140,7 +141,7 @@ export default function LogPage() {
                       <button className="x" title="Edit" onClick={() => edit(l)}>
                         ✎
                       </button>
-                      <button className="x" title="Delete" onClick={() => confirm('Delete this entry?') && db.logs.delete(l.id!)}>
+                      <button className="x" title="Delete" onClick={async () => (await confirmDialog({ title: 'Delete this entry?', message: 'This journal entry will be removed.', confirmLabel: 'Delete entry', tone: 'danger' })) && db.logs.delete(l.id!)}>
                         ✕
                       </button>
                     </div>

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { clearAll, exportAll, importAll } from '../db'
 import { Card } from '../components/ui'
+import { confirmDialog, toast } from '../components/Dialogs'
 import CloudPanel from '../components/CloudPanel'
 import { beep, notify, requestNotifications, unlockAudio } from '../lib/alarm'
 import { loadDemoData } from '../lib/demo'
@@ -31,14 +32,17 @@ export default function SettingsPage() {
   async function doImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!confirm('Importing replaces ALL current data. Continue?')) return
-    try {
-      await importAll(JSON.parse(await file.text()))
-      setMsg('Import complete.')
-    } catch (err: any) {
-      setMsg(`Import failed: ${err.message}`)
+    const input = e.target
+    const ok = await confirmDialog({ title: 'Replace all current data?', message: 'Importing this backup replaces everything on this device. Export a backup first if you want to keep your current data.', confirmLabel: 'Import backup', tone: 'danger' })
+    if (ok) {
+      try {
+        await importAll(JSON.parse(await file.text()))
+        toast('Backup imported.', 'success')
+      } catch (err) {
+        toast(`Import failed: ${err instanceof Error ? err.message : 'unknown error'}`, 'error')
+      }
     }
-    e.target.value = ''
+    input.value = ''
   }
 
   async function enableNotifs() {
@@ -166,9 +170,10 @@ export default function SettingsPage() {
             <button
               className="btn ghost"
               onClick={async () => {
-                if (confirm('Replace ALL current data with sample data? Export a backup first if you want to keep your data.')) {
+                const ok = await confirmDialog({ title: 'Load sample data?', message: 'This replaces all current data with realistic sample data. Export a backup first if you want to keep your data.', confirmLabel: 'Load sample data', tone: 'danger' })
+                if (ok) {
                   await loadDemoData()
-                  setMsg('Sample data loaded.')
+                  toast('Sample data loaded.', 'success')
                 }
               }}
             >
@@ -177,9 +182,10 @@ export default function SettingsPage() {
             <button
               className="btn danger"
               onClick={async () => {
-                if (confirm('Delete ALL data permanently? Export a backup first!')) {
+                const ok = await confirmDialog({ title: 'Delete all data?', message: 'Everything stored on this device is removed permanently. Export a backup first if you might need it.', confirmLabel: 'Delete everything', tone: 'danger' })
+                if (ok) {
                   await clearAll()
-                  setMsg('All data cleared.')
+                  toast('All data cleared.', 'success')
                 }
               }}
             >

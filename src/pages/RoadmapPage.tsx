@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { confirmDialog } from '../components/Dialogs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import { Card, Progress } from '../components/ui'
@@ -75,7 +76,7 @@ export default function RoadmapPage() {
                       {n}/{s.items.length}
                     </span>
                     {n > 0 && (
-                      <button className="btn ghost small" onClick={() => confirm(`Clear progress for "${s.title}"?`) && clearSection(s)}>
+                      <button className="btn ghost small" onClick={async () => (await confirmDialog({ title: `Clear progress for "${s.title}"?`, message: 'The topics in this section will be unchecked. You can pass their quizzes again any time.', confirmLabel: 'Clear progress', tone: 'danger' })) && clearSection(s)}>
                         Clear
                       </button>
                     )}
