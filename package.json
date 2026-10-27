@@ -1,6 +1,6 @@
 {
   "name": "growth-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Offline-first tracker for coding growth: focus timers, journal, skills, a Python roadmap with quizzes, and spaced repetition. No backend, no API keys.",
   "private": false,
   "license": "MIT",
