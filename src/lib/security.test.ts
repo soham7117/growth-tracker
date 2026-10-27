@@ -57,3 +57,13 @@ describe('readJson', () => {
     expect(readJson('ok', d)).toEqual({ a: 1, b: 2 })
   })
 })
+
+describe('stale deploy detection', () => {
+  it('recognises chunk-load failures from the major browsers', async () => {
+    const { isChunkError } = await import('../components/ErrorBoundary')
+    for (const m of ['Failed to fetch dynamically imported module: https://x/assets/A.js', 'error loading dynamically imported module', 'Importing a module script failed.']) {
+      expect(isChunkError(new Error(m))).toBe(true)
+    }
+    expect(isChunkError(new Error('Cannot read properties of undefined'))).toBe(false)
+  })
+})
