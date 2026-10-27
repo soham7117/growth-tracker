@@ -1,6 +1,6 @@
-const CACHE = 'growth-tracker-v1'
+const CACHE = 'growth-tracker-v2'
 
-self.addEventListener('install', (e) => {
+self.addEventListener('install', () => {
   self.skipWaiting()
 })
 
@@ -17,8 +17,11 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(req)
       .then((res) => {
-        const copy = res.clone()
-        caches.open(CACHE).then((c) => c.put(req, copy))
+        // never cache error pages or redirects, they would be served back offline
+        if (res.ok && res.type === 'basic') {
+          const copy = res.clone()
+          caches.open(CACHE).then((c) => c.put(req, copy))
+        }
         return res
       })
       .catch(() => caches.match(req).then((r) => r || caches.match('./')))

@@ -140,25 +140,43 @@ export const TABLES = [
   'activity',
 ] as const
 
+export type TableName = (typeof TABLES)[number]
+
+const tableOf = (name: TableName) => db.table(name)
+
 export async function exportAll() {
-  const out: Record<string, unknown[]> = {}
-  for (const t of TABLES) out[t] = await (db as any)[t].toArray()
-  return { app: 'growth-tracker', version: 1, exportedAt: new Date().toISOString(), data: out }
+  const data: Record<string, unknown[]> = {}
+  for (const t of TABLES) data[t] = await tableOf(t).toArray()
+  return { app: 'growth-tracker', version: 1, exportedAt: new Date().toISOString(), data }
 }
 
-export async function importAll(json: any) {
-  if (!json || json.app !== 'growth-tracker' || !json.data) throw new Error('Not a Growth Tracker backup file')
-  await db.transaction('rw', TABLES.map((t) => (db as any)[t]), async () => {
+const isRow = (r: unknown): r is Record<string, unknown> => typeof r === 'object' && r !== null && !Array.isArray(r)
+
+/**
+ * Replaces all local data with a backup. The file is untrusted input (hand-edited, from another
+ * device, or downloaded), so it is validated completely before anything is deleted.
+ */
+export async function importAll(json: unknown) {
+  const file = json as { app?: unknown; data?: Record<string, unknown> } | null
+  if (!file || file.app !== 'growth-tracker' || !isRow(file.data)) throw new Error('Not a Growth Tracker backup file')
+  const data = file.data
+  for (const t of TABLES) {
+    const rows = data[t]
+    if (rows === undefined) continue
+    if (!Array.isArray(rows) || !rows.every(isRow)) throw new Error(`Backup is damaged: "${t}" is not a list of records`)
+  }
+  await db.transaction('rw', TABLES.map(tableOf), async () => {
     for (const t of TABLES) {
-      await (db as any)[t].clear()
-      if (Array.isArray(json.data[t])) await (db as any)[t].bulkAdd(json.data[t])
+      await tableOf(t).clear()
+      const rows = data[t]
+      if (Array.isArray(rows)) await tableOf(t).bulkAdd(rows)
     }
   })
 }
 
 export async function clearAll() {
-  await db.transaction('rw', TABLES.map((t) => (db as any)[t]), async () => {
-    for (const t of TABLES) await (db as any)[t].clear()
+  await db.transaction('rw', TABLES.map(tableOf), async () => {
+    for (const t of TABLES) await tableOf(t).clear()
   })
 }
 

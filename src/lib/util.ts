@@ -107,3 +107,14 @@ export function timeAgo(ms: number, now = Date.now()) {
   if (h < 24) return `${h} h ago`
   return `${Math.round(h / 24)} d ago`
 }
+
+/** Returns the URL only if it is plain http(s); anything else (javascript:, data:, ...) becomes null. */
+export function safeHttpUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  try {
+    const u = new URL(raw.trim())
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null
+  } catch {
+    return null
+  }
+}
