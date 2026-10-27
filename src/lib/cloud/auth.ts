@@ -52,7 +52,7 @@ export function useSession() {
             const back = sessionStorage.getItem('gt-return')
             if (back) {
               sessionStorage.removeItem('gt-return')
-              location.hash = back
+              if (/^#\/[\w/-]*$/.test(back)) location.hash = back // in-app routes only
             }
           } catch {
             /* ignore */

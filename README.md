@@ -1,8 +1,12 @@
 # Growth Tracker
 
+[![CI](https://github.com/soham7117/growth-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/soham7117/growth-tracker/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-7c6cff.svg)](https://growth-tracker-ecru.vercel.app)
+
 An offline-first web app to track your growth as a developer. Focus timers with alarms, a daily journal, a skills map, a **Python roadmap checklist where every topic is unlocked by passing a quick quiz**, and spaced-repetition flashcards.
 
-**Local-first:** no backend, no accounts and no API keys are needed. Everything is stored in your browser (IndexedDB) and stays on your device. **Optional** cloud sync (GitHub/Google sign-in via Supabase) adds backups across devices and a fun leaderboard; it is off by default.
+**Local-first:** no backend, no accounts and no API keys are needed. Everything is stored in your browser (IndexedDB) and stays on your device. **Optional** cloud sync (GitHub sign-in via Supabase) adds backups across devices and a fun leaderboard; it is off by default.
 
 **Live demo: https://growth-tracker-ecru.vercel.app**
 
@@ -27,9 +31,14 @@ An offline-first web app to track your growth as a developer. Focus timers with 
 | **Review** | SM-2 spaced-repetition flashcards and a problem-retry queue |
 | **Dashboard & insights** | Heatmap, streaks, daily goal, weekly/monthly charts, best focus time, rule-based nudges |
 | **Data ownership** | JSON export / import backup |
-| **Cloud sync (optional)** | Sign in with GitHub or Google, private (optionally encrypted) backup, manual or automatic sync with conflict handling. See [docs/SYNC.md](docs/SYNC.md) |
+| **Cloud sync (optional)** | Sign in with GitHub, private (optionally encrypted) backup, manual or automatic sync with conflict handling. See [docs/SYNC.md](docs/SYNC.md) |
 | **Leaderboard (optional, opt-in)** | Weekly / monthly / all-time ranking from daily totals only. Journal content is never shared |
 | **PWA** | Installable, works offline |
+
+## Tech stack
+
+Vite + React 18 + TypeScript (strict) · Dexie (IndexedDB) · React Router (hash) · Recharts · date-fns · plain CSS with theme tokens ·
+optional Supabase (Postgres, Auth, RLS) · Vitest + PGlite for tests · Vercel hosting. Full design: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## Getting started
 
@@ -46,6 +55,7 @@ Other scripts:
 
 ```bash
 npm test           # unit tests, quiz-data checks and the Supabase SQL security tests
+npm run typecheck  # TypeScript only
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build (service worker / install work here)
 ```
@@ -53,6 +63,12 @@ npm run preview    # serve the production build (service worker / install work h
 ## Deploy to Vercel
 
 Import the repo in Vercel. The Vite preset is auto-detected (`npm run build`, output `dist`) and `vercel.json` is included. The app uses hash routing, so no rewrite rules are needed. To enable the built-in cloud connection, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (see [docs/SYNC.md](docs/SYNC.md)); without them the app is purely local.
+
+## Security
+
+Strict Content-Security-Policy, HSTS and anti-clickjacking headers, row-level security on every table, validated backup imports and
+optional end-to-end encrypted backups. Details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#5-security-model); report vulnerabilities privately via
+[SECURITY.md](SECURITY.md).
 
 ## Privacy
 

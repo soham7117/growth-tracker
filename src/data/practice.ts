@@ -1,3 +1,5 @@
+import { safeHttpUrl } from '../lib/util'
+
 export interface Problem {
   title: string
   url: string
@@ -43,8 +45,11 @@ export const gfgSearch = (term: string) => `https://www.google.com/search?q=${en
 
 /** Open a link in a small popup window (falls back to a new tab if popups are blocked). */
 export function openPopup(url: string) {
+  const safe = safeHttpUrl(url)
+  if (!safe) return
   const w = Math.min(1100, window.screen.availWidth - 80)
   const h = Math.min(800, window.screen.availHeight - 80)
-  const win = window.open(url, 'practice-window', `popup=yes,width=${w},height=${h},left=60,top=40`)
-  if (!win) window.open(url, '_blank', 'noopener')
+  const win = window.open(safe, 'practice-window', `popup=yes,width=${w},height=${h},left=60,top=40`)
+  if (win) win.opener = null // the practice site must not be able to reach back into this app
+  else window.open(safe, '_blank', 'noopener,noreferrer')
 }

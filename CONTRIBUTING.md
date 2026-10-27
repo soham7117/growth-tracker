@@ -8,6 +8,7 @@ Thanks for helping! Small, focused pull requests are easiest to review.
 npm install
 npm run dev
 npm test
+npm run typecheck
 npm run build   # must pass before opening a PR
 ```
 
@@ -39,6 +40,11 @@ Practice links live in [`src/data/practice.ts`](src/data/practice.ts) and must b
 - TypeScript strict mode, functional React components, hooks.
 - Keep the app local-first: no required backend, no secrets, no tracking.
 - Match the existing patterns (Dexie tables in `src/db.ts`, pages in `src/pages`, shared UI in `src/components/ui.tsx`).
+- New page? Add it to `src/routes.tsx`; the router, sidebar and mobile nav all read from that one list.
+- Persisting a preference? Use `createStore` from `src/lib/storage.ts` (safe against blocked storage) instead of calling `localStorage` directly.
+- Rendering a user-entered link? Pass it through `safeHttpUrl` first.
+- Security issues: please follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
+- Architecture overview: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Changing the database schema? Add a new `this.version(n).stores(...)` in `src/db.ts` rather than editing an existing version, so existing users' data migrates.
 
 ## Changing the cloud schema

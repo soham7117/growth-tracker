@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { createStore } from '../storage'
 
 export interface CloudSettings {
   enabled: boolean // master switch; when false nothing cloud-related loads
@@ -28,36 +28,8 @@ export const CLOUD_DEFAULTS: CloudSettings = {
   lastUserId: null,
 }
 
-const KEY = 'gt-cloud'
-let current: CloudSettings = load()
-const listeners = new Set<() => void>()
+const store = createStore<CloudSettings>('gt-cloud', CLOUD_DEFAULTS)
 
-function load(): CloudSettings {
-  try {
-    return { ...CLOUD_DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }
-  } catch {
-    return CLOUD_DEFAULTS
-  }
-}
-
-export const getCloud = () => current
-
-export function updateCloud(patch: Partial<CloudSettings>) {
-  current = { ...current, ...patch }
-  try {
-    localStorage.setItem(KEY, JSON.stringify(current))
-  } catch {
-    /* storage unavailable */
-  }
-  listeners.forEach((l) => l())
-}
-
-export function useCloudSettings() {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb)
-      return () => listeners.delete(cb)
-    },
-    () => current
-  )
-}
+export const getCloud = store.get
+export const updateCloud = store.update
+export const useCloudSettings = store.use

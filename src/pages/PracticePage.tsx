@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, touchSkill, type Problem, type Project, type Resource } from '../db'
 import { Card, DictateButton, Empty, SkillSelect, Tabs } from '../components/ui'
 import { useSkills } from '../lib/hooks'
-import { addDays, prettyDate, today } from '../lib/util'
+import { addDays, prettyDate, safeHttpUrl, today } from '../lib/util'
 
 type Tab = 'problems' | 'projects' | 'resources'
 
@@ -95,7 +95,7 @@ function Problems() {
               <div key={p.id} className="item">
                 <div className="top">
                   <strong>{p.title}</strong>
-                  <button className="x" onClick={() => db.problems.delete(p.id!)}>
+                  <button className="x" aria-label="Delete" onClick={() => db.problems.delete(p.id!)}>
                     ✕
                   </button>
                 </div>
@@ -164,8 +164,8 @@ function Projects() {
             {items.map((p) => (
               <div key={p.id} className="item">
                 <div className="top">
-                  <strong>{p.url ? <a href={p.url} target="_blank" rel="noreferrer">{p.title}</a> : p.title}</strong>
-                  <button className="x" onClick={() => db.projects.delete(p.id!)}>
+                  <strong>{safeHttpUrl(p.url) ? <a href={safeHttpUrl(p.url)!} target="_blank" rel="noreferrer noopener">{p.title}</a> : p.title}</strong>
+                  <button className="x" aria-label="Delete" onClick={() => db.projects.delete(p.id!)}>
                     ✕
                   </button>
                 </div>
@@ -224,7 +224,7 @@ function Resources() {
               <div key={r.id} className="item">
                 <div className="top">
                   <strong>{r.title}</strong>
-                  <button className="x" onClick={() => db.resources.delete(r.id!)}>
+                  <button className="x" aria-label="Delete" onClick={() => db.resources.delete(r.id!)}>
                     ✕
                   </button>
                 </div>
